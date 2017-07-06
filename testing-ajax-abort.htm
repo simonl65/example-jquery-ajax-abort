@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>jQuery ajax abort test</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+</head>
+<body>
+	<h1>Testing a forced abort of an ajax request</h1>
+	<p>You'll need to open developer tools (<i>F12</i>) to see what's happening...</p>
+
+	<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script>
+
+		console.log("Set-up & run the request: Waiting for response...");
+		var somebodyStopMe = getData( "GET", "api-delayed.php", 65000 );
+
+		// When it...:
+		$.when( somebodyStopMe )
+
+		// ...has completed:
+		.done(function(data){if(debug){console.log('Got data:', data);}})
+
+		// ...has failed or been aborted:
+		.fail
+		(
+			function(xhr, status, error)
+			{
+				console.log("Looks like the request failed. Now why was that?...");
+
+				if( status == "abort" )
+				{
+					console.log('ABORTED');
+				}
+				else
+				{
+					console.log( "FAILED, but not sure why:\nStatus: " + status + "\nError: " + error );
+				}
+			}
+		);
+
+		// Force it to abort:
+		// somebodyStopMe.abort();
+
+		/****************************************************************************/
+
+
+
+		/*********************************************************************************
+		 * getData
+		 * 
+		 * Makes an ajax request with an authorization bearer token and optional
+		 * timeout.
+		 * 
+		 * @param {string}		type		- HTTP request type (e.g. GET, POST, etc.).
+		 * @param	{string}		url			- The URL to call.
+		 * @param	{int||null}	timeout	- Time to wait for response in microseconds.
+		 ********************************************************************************/
+		function getData( type, url, timeout )
+		{
+			timeout = timeout || 0;	// Default timeout is up to the browser.
+			type		= type || 'GET'
+
+			return $.ajax
+			(
+				{
+					type		: type,
+					dataType: 'json',
+					url			: url,
+					timeout	: timeout,
+					abort		: function(){ console.error('REQUEST ABORTED'); }
+				}
+			);
+		}
+	</script>	
+</body>
+</html>
